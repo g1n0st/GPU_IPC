@@ -654,15 +654,46 @@ void LoadSettings() {
 }
 
 
+void TeddySettings()
+{
+    // global settings
+    ipc.density        = 1e3;
+    ipc.YoungModulus   = 3e4;
+    ipc.PoissonRate    = 0.4;
+    ipc.lengthRateLame = ipc.YoungModulus / (2 * (1 + ipc.PoissonRate));
+    ipc.volumeRateLame = ipc.YoungModulus * ipc.PoissonRate
+                         / ((1 + ipc.PoissonRate) * (1 - 2 * ipc.PoissonRate));
+    ipc.lengthRate        = 4 * ipc.lengthRateLame / 3;
+    ipc.volumeRate        = ipc.volumeRateLame + 5 * ipc.lengthRateLame / 6;
+    ipc.frictionRate      = 0.3;
+    ipc.clothThickness    = 1e-3;
+    ipc.clothYoungModulus = 1e6;
+    ipc.stretchStiff      = ipc.clothYoungModulus / (2 * (1 + ipc.PoissonRate));
+    ipc.shearStiff        = ipc.stretchStiff * 0.05;
+    ipc.clothDensity      = 2e2;
+    ipc.softMotionRate    = 1e0;
+    ipc.bendStiff         = 3e-4;
+    ipc.Newton_solver_threshold = 1e-1;
+    ipc.pcg_threshold           = 1e-3;
+    ipc.IPC_dt                  = 1e-2;
+    ipc.relative_dhat           = 1e-3;
+    ipc.bendStiff = ipc.clothYoungModulus * pow(ipc.clothThickness, 3)
+                    / (24 * (1 - ipc.PoissonRate * ipc.PoissonRate));
+    ipc.shearStiff = 0.03 * ipc.stretchStiff;
+}
 
-void initScene1() {
+void initTeddyScene() {
 
 	auto assets_dir = std::string{ gipc::assets_dir() };
 
     tetMesh.load_tetrahedraMesh(
-        assets_dir + "tetMesh/bunny2.msh", 0.2, make_double3(0, 0.65, 0));
-    tetMesh.load_tetrahedraMesh(
-        assets_dir + "tetMesh/bunny2.msh", 0.2, make_double3(0, -0, 0));
+         assets_dir + "tetMesh/teddy.msh", make_double3(1.0, 1.0, 1.0), make_double3(0, -0.01, 0.0));
+	
+	tetMesh.load_tetrahedraMesh(
+        assets_dir + "tetMesh/cube.msh", make_double3(0.02, 0.06, 0.02), make_double3(+0.11, -0.04, +0.01));
+	
+	tetMesh.load_tetrahedraMesh(
+        assets_dir + "tetMesh/cube.msh", make_double3(0.02, 0.06, 0.02), make_double3(-0.09, -0.04, +0.01));
 
 
 	tetMesh.getSurface();
@@ -844,8 +875,8 @@ void init(void)
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
 
-	LoadSettings();
-	initScene1();
+	TeddySettings();
+	initTeddyScene();
 
 		glViewport(0, 0, window_width, window_height);
 		glMatrixMode(GL_PROJECTION);

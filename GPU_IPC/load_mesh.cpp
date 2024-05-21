@@ -322,7 +322,8 @@ tetrahedra_obj::tetrahedra_obj() {
 	maxConer = make_double3(0, 0, 0);
 }
 
-bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double scale, double3 position_offset) {
+bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double3 scale, double3 position_offset)
+{
 
 	ifstream ifs(filename);
 	if (!ifs) {
@@ -356,7 +357,7 @@ bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double sca
 				y = atof(nodePos[2].c_str());
 				z = atof(nodePos[3].c_str());
 				double3 d_velocity = make_double3(0, 0, 0);
-				double3 vertex = make_double3(scale * x - position_offset.x, scale * y - position_offset.y, scale * z - position_offset.z);
+				double3 vertex = make_double3(scale.x * x - position_offset.x, scale.y * y - position_offset.y, scale.z * z - position_offset.z);
 				//Matrix3d Constraint; Constraint.setIdentity();
 				//Vector3d force = Vector3d(0, 0, 0);
 				double3 velocity = make_double3(0, 0, 0);
@@ -440,7 +441,7 @@ bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double sca
 	return true;
 }
 
-bool tetrahedra_obj::load_tetrahedraMesh_IPC_TetMesh(const std::string& filename, double scale, double3 position_offset) {
+bool tetrahedra_obj::load_tetrahedraMesh_IPC_TetMesh(const std::string& filename, double3 scale, double3 position_offset) {
 
 	ifstream ifs(filename);
 	if (!ifs) {
@@ -474,7 +475,7 @@ bool tetrahedra_obj::load_tetrahedraMesh_IPC_TetMesh(const std::string& filename
 				y = atof(nodePos[1].c_str());
 				z = atof(nodePos[2].c_str());
 				double3 d_velocity = make_double3(0, 0, 0);
-				double3 vertex = make_double3(scale * x - position_offset.x, scale * y - position_offset.y, scale * z - position_offset.z);
+				double3 vertex = make_double3(scale.x * x - position_offset.x, scale.y * y - position_offset.y, scale.z * z - position_offset.z);
 				//Matrix3d Constraint; Constraint.setIdentity();
 				//Vector3d force = Vector3d(0, 0, 0);
 				double3 velocity = make_double3(0, 0, 0);
