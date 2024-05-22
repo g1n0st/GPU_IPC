@@ -322,7 +322,7 @@ tetrahedra_obj::tetrahedra_obj() {
 	maxConer = make_double3(0, 0, 0);
 }
 
-bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double3 scale, double3 position_offset)
+bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double3 scale, double3 position_offset, std::vector<int> mask)
 {
 
 	ifstream ifs(filename);
@@ -375,6 +375,16 @@ bool tetrahedra_obj::load_tetrahedraMesh(const std::string& filename, double3 sc
 				//isDelete.push_back(false);
 				//d_positions.push_back(d_pos);
 				//externalForce.push_back(Vector3d(0, 0, 0));
+
+				if(mask.size() == nodeNumber)
+                {
+                    if(mask[i])
+                    {
+                        softNum += 1;
+                        targetIndex.push_back(vertexes.size() - 1);
+                        targetPos.push_back(vertexes.back());
+                    }
+                }
 
 
 				__GEIGEN__::Matrix3x3d constraint;

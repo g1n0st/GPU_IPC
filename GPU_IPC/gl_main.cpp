@@ -658,20 +658,20 @@ void TeddySettings()
 {
     // global settings
     ipc.density        = 1e3;
-    ipc.YoungModulus   = 3e4;
+    ipc.YoungModulus   = 1e5;
     ipc.PoissonRate    = 0.4;
     ipc.lengthRateLame = ipc.YoungModulus / (2 * (1 + ipc.PoissonRate));
     ipc.volumeRateLame = ipc.YoungModulus * ipc.PoissonRate
                          / ((1 + ipc.PoissonRate) * (1 - 2 * ipc.PoissonRate));
     ipc.lengthRate        = 4 * ipc.lengthRateLame / 3;
     ipc.volumeRate        = ipc.volumeRateLame + 5 * ipc.lengthRateLame / 6;
-    ipc.frictionRate      = 0.3;
+    ipc.frictionRate      = 0.5;
     ipc.clothThickness    = 1e-3;
     ipc.clothYoungModulus = 1e6;
     ipc.stretchStiff      = ipc.clothYoungModulus / (2 * (1 + ipc.PoissonRate));
     ipc.shearStiff        = ipc.stretchStiff * 0.05;
     ipc.clothDensity      = 2e2;
-    ipc.softMotionRate    = 1e0;
+    ipc.softMotionRate    = 1e6;
     ipc.bendStiff         = 3e-4;
     ipc.Newton_solver_threshold = 1e-1;
     ipc.pcg_threshold           = 1e-3;
@@ -686,15 +686,27 @@ void initTeddyScene() {
 
 	auto assets_dir = std::string{ gipc::assets_dir() };
 
-    tetMesh.load_tetrahedraMesh(
-         assets_dir + "tetMesh/teddy.msh", make_double3(1.0, 1.0, 1.0), make_double3(0, -0.01, 0.0));
-	
-	tetMesh.load_tetrahedraMesh(
-        assets_dir + "tetMesh/cube.msh", make_double3(0.02, 0.06, 0.02), make_double3(+0.11, -0.04, +0.01));
-	
-	tetMesh.load_tetrahedraMesh(
-        assets_dir + "tetMesh/cube.msh", make_double3(0.02, 0.06, 0.02), make_double3(-0.09, -0.04, +0.01));
+	tetMesh.load_tetrahedraMesh(assets_dir + "tetMesh/cube.msh",
+                                make_double3(0.02, 0.06, 0.02),
+                                make_double3(+0.11, -0.04, +0.01),
+                                {1, 0, 0, 1, 1, 0, 0, 1}
+                                // {0, 1, 1, 0, 0, 1, 1, 0}
+								);
 
+    tetMesh.load_tetrahedraMesh(assets_dir + "tetMesh/cube.msh",
+                                make_double3(0.02, 0.06, 0.02),
+                                make_double3(-0.09, -0.04, +0.01),
+                                // {1, 0, 0, 1, 1, 0, 0, 1}
+                                {0, 1, 1, 0, 0, 1, 1, 0}
+								);
+    tetMesh.load_tetrahedraMesh(assets_dir + "tetMesh/cube.msh",
+                                make_double3(2.0, 0.9, 2.0),
+                                make_double3(1.0, 0.9, 1.0),
+                                {1, 1, 1, 1, 1, 1, 1, 1});
+    tetMesh.load_tetrahedraMesh(assets_dir + "tetMesh/teddy.msh",
+                                make_double3(1.0, 1.0, 1.0),
+                                make_double3(0, -0.01, 0.0),
+                                {0});
 
 	tetMesh.getSurface();
 
@@ -771,7 +783,7 @@ void initTeddyScene() {
 	}
 
 
-	if (true) {
+	if (false) {
 		if (ipc.animation) {
 			ipc.sortMesh(d_tetMesh, bodyVertOffset);
 		}
@@ -822,6 +834,41 @@ void display(void)
 
 	if (stop) return;
 
+	if(step <= 15)
+    {
+        std::vector<double3> tarVh(ipc.softNum);
+        CUDA_SAFE_CALL(cudaMemcpy(tarVh.data(), d_tetMesh.targetVert,
+                                 tetMesh.softNum * sizeof(double3),
+                                 cudaMemcpyDeviceToHost));
+        for(int i = 0; i < 4; i++)
+        {
+            tarVh[i].x += 0.004;
+		}
+        for(int i = 4; i < 8; i++)
+        {
+            tarVh[i].x -= 0.004;
+        }
+        CUDA_SAFE_CALL(cudaMemcpy(d_tetMesh.targetVert,
+                                  tarVh.data(),
+                                  tetMesh.softNum * sizeof(double3),
+                                  cudaMemcpyHostToDevice));
+	}
+    else if(step <= 40)
+    {
+        std::vector<double3> tarVh(ipc.softNum);
+        CUDA_SAFE_CALL(cudaMemcpy(tarVh.data(),
+                                  d_tetMesh.targetVert,
+                                  tetMesh.softNum * sizeof(double3),
+                                  cudaMemcpyDeviceToHost));
+        for(int i = 0; i < 8; i++)
+        {
+            tarVh[i].y += 0.002;
+        }
+        CUDA_SAFE_CALL(cudaMemcpy(d_tetMesh.targetVert,
+                                  tarVh.data(),
+                                  tetMesh.softNum * sizeof(double3),
+                                  cudaMemcpyHostToDevice));
+	}
 	ipc.IPC_Solver(d_tetMesh);
 
 	//if(step == 20) {

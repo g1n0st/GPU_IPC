@@ -95,7 +95,7 @@ public:
 	tetrahedra_obj();
 	int getVertNeighbors();
 	//void InitMesh(int type, double scale);
-	bool load_tetrahedraMesh(const std::string& filename, double3 scale, double3 position_offset);
+	bool load_tetrahedraMesh(const std::string& filename, double3 scale, double3 position_offset, std::vector<int> mask);
 	bool load_triMesh(const std::string& filename, double scale, double3 transform, int boundaryType);
 	bool load_animation(const std::string& filename, double scale, double3 transform);
 	bool load_tetrahedraMesh_IPC_TetMesh(const std::string& filename, double3 scale, double3 position_offset);

@@ -5802,10 +5802,8 @@ void GIPC::computeSoftConstraintGradientAndHessian(double3* _gradient) {
     CUDA_SAFE_CALL(cudaMemcpy(&BH.DNum, _gpNum, sizeof(int), cudaMemcpyDeviceToHost));
 }
 
-void GIPC::computeGroundGradientAndHessian(double3* _gradient) {
-#ifndef USE_FRICTION  
+void GIPC::computeGroundGradientAndHessian(double3* _gradient) { 
     CUDA_SAFE_CALL(cudaMemset(_gpNum, 0, sizeof(uint32_t)));
-#endif
     int numbers = h_gpNum;
     if (numbers < 1) {
         CUDA_SAFE_CALL(cudaMemcpy(&BH.DNum, _gpNum, sizeof(int), cudaMemcpyDeviceToHost));
@@ -6571,10 +6569,8 @@ float GIPC::computeGradientAndHessian(device_TetraData& TetMesh) {
     float time00 = 0;
 
     //calBarrierGradient(TetMesh.fb, Kappa);
-#ifdef USE_FRICTION
     calFrictionGradient(TetMesh.fb, TetMesh);
     calFrictionHessian(TetMesh);
-#endif
 
     //CUDA_SAFE_CALL(cudaDeviceSynchronize());
     calculate_fem_gradient_hessian(TetMesh.DmInverses, TetMesh.vertexes, TetMesh.tetrahedras, BH.H12x12,
@@ -6709,12 +6705,10 @@ double GIPC::computeEnergy(device_TetraData& TetMesh) {
 
     Energy += Kappa * Energy_Add_Reduction_Algorithm(4, TetMesh);
 
-#ifdef USE_FRICTION
     Energy += frictionRate * Energy_Add_Reduction_Algorithm(5, TetMesh);
     //CUDA_SAFE_CALL(cudaDeviceSynchronize());
     Energy += frictionRate * Energy_Add_Reduction_Algorithm(6, TetMesh);
     //CUDA_SAFE_CALL(cudaDeviceSynchronize());
-#endif
     return Energy;
 }
 
@@ -6964,10 +6958,7 @@ int GIPC::solve_subIP(device_TetraData& TetMesh, double& time0, double& time1, d
         double temp_alpha = alpha;
         double alpha_CFL = alpha;
 
-        double ccd_size = 1.0;
-#ifdef USE_FRICTION
-        ccd_size = 0.6;
-#endif
+        double ccd_size = 0.6;
 
         buildBVH_FULLCCD(temp_alpha);
         buildFullCP(temp_alpha);
@@ -7138,7 +7129,6 @@ void GIPC::IPC_Solver(device_TetraData& TetMesh) {
     }
     initKappa(TetMesh);
 
-#ifdef USE_FRICTION
     CUDA_SAFE_CALL(cudaMalloc((void**)&lambda_lastH_scalar, h_cpNum[0] * sizeof(double)));
     CUDA_SAFE_CALL(cudaMalloc((void**)&distCoord, h_cpNum[0] * sizeof(double2)));
     CUDA_SAFE_CALL(cudaMalloc((void**)&tanBasis, h_cpNum[0] * sizeof(__GEIGEN__::Matrix3x2d)));
@@ -7148,7 +7138,6 @@ void GIPC::IPC_Solver(device_TetraData& TetMesh) {
     CUDA_SAFE_CALL(cudaMalloc((void**)&lambda_lastH_scalar_gd, h_gpNum * sizeof(double)));
     CUDA_SAFE_CALL(cudaMalloc((void**)&_collisonPairs_lastH_gd, h_gpNum * sizeof(uint32_t)));
     buildFrictionSets();
-#endif
     animation_fullRate = animation_subRate;
     int k = 0;
     double time0 = 0;
@@ -7202,7 +7191,6 @@ void GIPC::IPC_Solver(device_TetraData& TetMesh) {
         //updateVelocities(TetMesh);
 
         //computeXTilta(TetMesh, 1);
-#ifdef USE_FRICTION
         CUDA_SAFE_CALL(cudaFree(lambda_lastH_scalar));
         CUDA_SAFE_CALL(cudaFree(distCoord));
         CUDA_SAFE_CALL(cudaFree(tanBasis));
@@ -7220,10 +7208,8 @@ void GIPC::IPC_Solver(device_TetraData& TetMesh) {
         CUDA_SAFE_CALL(cudaMalloc((void**)&lambda_lastH_scalar_gd, h_gpNum * sizeof(double)));
         CUDA_SAFE_CALL(cudaMalloc((void**)&_collisonPairs_lastH_gd, h_gpNum * sizeof(uint32_t)));
         buildFrictionSets();
-#endif
     }
 
-#ifdef USE_FRICTION
     CUDA_SAFE_CALL(cudaFree(lambda_lastH_scalar));
     CUDA_SAFE_CALL(cudaFree(distCoord));
     CUDA_SAFE_CALL(cudaFree(tanBasis));
@@ -7232,7 +7218,6 @@ void GIPC::IPC_Solver(device_TetraData& TetMesh) {
 
     CUDA_SAFE_CALL(cudaFree(lambda_lastH_scalar_gd));
     CUDA_SAFE_CALL(cudaFree(_collisonPairs_lastH_gd));
-#endif
 
     updateVelocities(TetMesh);
 

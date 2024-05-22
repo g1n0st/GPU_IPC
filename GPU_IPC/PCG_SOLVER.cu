@@ -1540,11 +1540,9 @@ void BHessian::updateDNum(const int& tri_Num, const int& tet_number, const uint3
     DNum[2] = cpNums[2] + tri_Num;
     DNum[3] = tet_number + cpNums[3] + tri_edge_number;
 
-#ifdef USE_FRICTION
     DNum[1] += last_cpNums[1];
     DNum[2] += last_cpNums[2];
     DNum[3] += last_cpNums[3];
-#endif
 }
 
 void BHessian::MALLOC_DEVICE_MEM_O(const int& tet_number, const int& surfvert_number, const int& surface_number, const int& surfEdge_number, const int& triangle_num, const int& tri_Edge_number) {
